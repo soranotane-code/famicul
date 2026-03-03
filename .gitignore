@@ -8,4 +8,7 @@ venv/
 db/data/
 
 # OS
-.DS_Store
+.DS_Stor
+
+.env
+.cursorrules
