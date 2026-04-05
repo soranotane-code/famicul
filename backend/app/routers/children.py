@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.child import Child
-from app.schemas.child import ChildCreate
+from app.schemas.child import ChildCreate, ChildUpdate, ChildResponse
 from app.core.dependencies import get_db, get_current_user
 
 router = APIRouter()
 
-@router.post("/children")
+# 子ども情報の登録
+@router.post("/children", response_model=ChildResponse)
 def create_child(
     child_in: ChildCreate,
     db: Session = Depends(get_db),
@@ -27,13 +28,45 @@ def create_child(
     db.commit()
     db.refresh(new_child)
 
-    return {
-        "id": new_child.id,
-        "name": new_child.name,
-        "gender": new_child.gender,
-        "birthday": new_child.birthday,
-        "weight": new_child.weight,
-        "chronic_disease": new_child.chronic_disease,
-        "allergy": new_child.allergy,
-        "message": "Child created successfully!" 
-    }
+    return new_child
+
+
+# こども情報の表示
+@router.get("/children/{id}", response_model=ChildResponse)
+def get_child(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    child = db.query(Child).filter(Child.id == id, Child.user_id == current_user.id).first()
+
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    return child
+
+
+# こども情報の更新
+@router.post("/children/{id}", response_model=ChildResponse)
+def update_child(
+    id: int,
+    child_in: ChildUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    child = db.query(Child).filter(Child.id == id, Child.user_id == current_user.id).first()
+
+    if not child:
+        raise HTTPException(status_code=404, detail="Child not found")
+
+    child.name = child_in.name
+    child.gender = child_in.gender
+    child.birthday = child_in.birthday
+    child.weight = child_in.weight
+    child.chronic_disease = child_in.chronic_disease
+    child.allergy = child_in.allergy
+
+    db.commit()
+    db.refresh(child)
+
+    return child

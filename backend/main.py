@@ -28,7 +28,7 @@ def read_root():
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 # /childへのアクセスの処理
-app.include_router(children.router)
+app.include_router(children.router, tags=["children"])
 
 
 @app.post("/register")
