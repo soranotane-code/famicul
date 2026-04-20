@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.visit import VisitCreate, VisitImageCreate, VisitResponse
+from app.schemas.visit import VisitCreate, VisitImageCreate, VisitResponse, VisitUpdate
 from app.core.dependencies import get_db
 from app.models import Visit
 
@@ -42,5 +42,30 @@ def get_visit(
 
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
+
+    return visit
+
+# 受診ログの更新
+@router.put("/children/{child_id}/visits/{id}", response_model=VisitResponse)
+def update_visit(
+    child_id: int,
+    id: int,
+    visit_in: VisitUpdate,
+    db: Session = Depends(get_db),
+):
+    visit = db.query(Visit).filter(Visit.id == id, Visit.child_id == child_id).first()
+
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+
+    update_data = visit_in.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        if key == "disease_names":
+            continue
+        setattr(visit, key, value)
+
+    db.commit()
+    db.refresh(visit)
 
     return visit

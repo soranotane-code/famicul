@@ -37,3 +37,13 @@ class VisitResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class VisitUpdate(BaseModel):
+    hospital_id: Optional[int] = None
+    department_id: Optional[int] = None
+    visit_date: Optional[date] = None
+    symptom: Optional[str] = None
+    advice: Optional[str] = None
+    next_visit_at: Optional[datetime] = None
+    is_emergency: Optional[bool] = None
+    disease_names: Optional[List[str]] = None
