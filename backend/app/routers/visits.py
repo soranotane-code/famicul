@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.user import User
 from app.schemas.visit import VisitCreate, VisitImageCreate, VisitResponse, VisitUpdate
 from app.core.dependencies import get_db
 from app.models import Visit
@@ -45,7 +44,7 @@ def get_visit(
 
     return visit
 
-# 受診ログの更新
+# 受診記録の更新
 @router.put("/children/{child_id}/visits/{id}", response_model=VisitResponse)
 def update_visit(
     child_id: int,
@@ -69,3 +68,20 @@ def update_visit(
     db.refresh(visit)
 
     return visit
+
+# 受診記録の削除
+@router.delete("/children/{child_id}/visits/{id}")
+def delete_visit(
+    child_id: int,
+    id: int,
+    db: Session = Depends(get_db),
+):
+    visit = db.query(Visit).filter(Visit.id == id, Visit.child_id == child_id).first()
+
+    if not visit:
+        raise HTTPException(status_code=404, detail="Visit not found")
+
+    db.delete(visit)
+    db.commit()
+    # 削除が実行されるとdbからデータが消えるためdb.refresh(visit)は不要
+    return {"message": "Visit deleted successfully!"}
