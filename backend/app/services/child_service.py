@@ -15,10 +15,10 @@ def _get_child_or_404(
     if not child:
         raise HTTPException(status_code=404, detail="Child not found")
 
-    #見つかったこども情報を返す
+    # 見つかったこども情報を返す
     return child
 
-
+# こども情報の取得処理
 def get_child_service(
     db: Session,
     child_id: int,
