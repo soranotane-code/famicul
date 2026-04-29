@@ -3,38 +3,49 @@ from app.models import Visit
 from app.models.disease import Disease, VisitDisease
 from app.schemas.visit import VisitCreate, VisitUpdate
 
-def _normalize_disease_names(disease_names: list[str] | None) -> list[str]:
-    # 前後の空白を削除し、空文字と重複を除いた病名リストを作る
+# 病名リストを正規化（空白除去、空文字除去、重複削除）する
+def _normalized_disease_names(disease_names: list[str] | None):
     normalized_names: list[str] = []
+
     for disease_name in disease_names or []:
+        # 前後の空白を削除する
         normalized_name = disease_name.strip()
+
+        # 空文字でない、かつまだ追加していない病名だけを追加する
         if normalized_name and normalized_name not in normalized_names:
             normalized_names.append(normalized_name)
+
     return normalized_names
 
-
+# 受診記録に紐づく病名を一度全削除して最新を入れ直す
 def _replace_visit_diseases(
     db: Session,
     visit: Visit,
     disease_names: list[str] | None
 ) -> None:
-    # 既存の紐付けをいったん全削除して最新の病名一覧で作り直す
+    # 対象visitの既存の中間テーブル行を削除する
     db.query(VisitDisease).filter(VisitDisease.visit_id == visit.id).delete()
 
-    # 入力病名を正規化して保存対象を確定する
-    normalized_names = _normalize_disease_names(disease_names)
+    # 正規化した病名一覧をつくる
+    normalized_names = _normalized_disease_names(disease_names)
 
     for disease_name in normalized_names:
-        # 病名マスタにすでに存在するか確認する
+        # disease_nameがすでにDiseaseテーブルに存在するか探す
         disease = db.query(Disease).filter(Disease.name == disease_name).first()
+    
         if not disease:
-            # 未登録病名はマスタへ追加する
+            # なければDiseaseオブジェクトを生成して追加
             disease = Disease(name=disease_name)
             db.add(disease)
+
+            # 新規のdiseaseにはdisease.idが付与されていないためflush(一時保存)して採番
             db.flush()
 
-        # 受診記録と病名の紐付けを中間テーブルへ登録する
-        db.add(VisitDisease(visit_id=visit.id, disease_id=disease.id))
+        # visitとdiseaseの紐付けを中間テーブルへ追加する
+        db.add(VisitDisease(
+            visit_id=visit.id,
+            disease_id=disease.id
+        ))
 
 # こどもIDと受診記録IDから受診記録を取得
 def get_visit_by_id_and_child_id(
@@ -62,9 +73,11 @@ def create_visit(
         is_emergency = visit_in.is_emergency
     )
     db.add(new_visit)
-    # 受診記録ID確定後に病名紐付けを保存するためflushする
+
+    # visit_idを確定させるためflushする
     db.flush()
-    # 病名マスタと中間テーブルの保存を行う
+
+    # disease_namesを中間テーブルに保存する
     _replace_visit_diseases(db, new_visit, visit_in.disease_names)
 
     db.commit()
@@ -80,13 +93,13 @@ def update_visit(
 ):
     update_data = visit_in.model_dump(exclude_unset=True)
 
-    # disease_namesは受診記録本体ではなく中間テーブル側で扱う
+    # update_dataからdisease_namesを取り出す（なければNone）
     disease_names = update_data.pop("disease_names", None)
 
     for key, value in update_data.items():
         setattr(visit, key, value)
 
-    # disease_namesがリクエストに含まれていた場合のみ病名紐付けを更新する
+    # disease_namesが指定されている時だけ中間テーブルを更新
     if disease_names is not None:
         _replace_visit_diseases(db, visit, disease_names)
 
