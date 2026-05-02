@@ -16,12 +16,6 @@ class VisitCreate(BaseModel):
     # 呼び出ごとに新しいリストを作成
     disease_names: List[str] = Field(default_factory=list)
 
-# --- VisitImage 用のスキーマ ---
-# 受診履歴に紐づく画像データ登録時のスキーマ
-class VisitImageCreate(BaseModel):
-    visit_id: int
-    s3_key: str
-
 # レスポンス用スキーマ
 class VisitResponse(BaseModel):
     id: int
@@ -47,3 +41,22 @@ class VisitUpdate(BaseModel):
     next_visit_at: Optional[datetime] = None
     is_emergency: Optional[bool] = None
     disease_names: Optional[List[str]] = None
+
+class VisitKey(BaseModel):
+    child_id: int
+    visit_id: int
+
+# --- VisitImage 用のスキーマ ---
+# 受診履歴に紐づく画像データ登録時のスキーマ
+class VisitImageCreate(BaseModel):
+    visit_id: int
+    s3_key: str
+
+# レスポンス用スキーマ
+class VisitImageResponse(BaseModel):
+    id: int
+    visit_id: int
+    s3_key: str
+
+    class Config:
+        from_attributes = True
