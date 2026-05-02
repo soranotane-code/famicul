@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.schemas.visit import VisitCreate, VisitImageCreate, VisitResponse, VisitUpdate, VisitKey
+from app.schemas.visit import VisitCreate, VisitResponse, VisitUpdate, VisitKey
 from app.core.dependencies import get_db
 from app.services import visit_service
 
