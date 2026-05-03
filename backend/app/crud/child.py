@@ -3,6 +3,19 @@ from sqlalchemy.orm import Session
 from app.models import Child
 from app.schemas.child import ChildCreate, ChildUpdate
 
+# ログインユーザーに紐づくこども情報を全件取得する
+def get_children_by_user_id(
+    db: Session,
+    user_id: int
+) -> list[Child]:
+    #Childテーブルからuser_idが一致するものを誕生日が早い順で表示
+    return (
+        db.query(Child)
+        .filter(Child.user_id == user_id)
+        .order_by(Child.birthday.asc())
+        .all()
+    )
+
 # こどもIDとユーザーIDからこども情報取得
 def get_child_by_id_and_user_id(
     db: Session,

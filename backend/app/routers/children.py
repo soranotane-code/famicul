@@ -17,6 +17,15 @@ def create_child(
     # serviceに処理を委譲して結果だけ返す
     return child_service.create_child_service(db, child_in, current_user.id)
 
+# こども情報の全件表示
+@router.get("/children", response_model=list[ChildResponse])
+def get_children(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    #serviceに処理を委譲して結果だけ返す
+    return child_service.get_children_service(db, current_user.id)
+
 # こども情報の表示
 @router.get("/children/{id}", response_model=ChildResponse)
 def get_child(
