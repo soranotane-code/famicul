@@ -17,6 +17,15 @@ def create_hospital(
     # serviceに処理を委譲して結果だけを返す
     return hospital_service.create_hospital_service(db, hospital_in, current_user.id)
 
+# 病院情報の全件表示
+@router.get("/hospitals", response_model=list[HospitalResponse])
+def get_hospitals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # serviceに処理を委譲して結果だけを返す
+    return hospital_service.get_hospitals_service(db, current_user.id)
+
 # 病院情報の表示
 @router.get("/hospitals/{id}", response_model=HospitalResponse)
 def get_hospital(
