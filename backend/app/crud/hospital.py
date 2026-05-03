@@ -1,8 +1,20 @@
 from sqlalchemy.orm import Session
-
 from app.models import Hospital
 from app.schemas.hospital import HospitalCreate, HospitalUpdate
 
+# ログインユーザーに紐づく病院情報を全件取得する
+def get_hospitals_by_user_id(
+    db: Session,
+    user_id: int
+) -> list[Hospital]:
+    # Hospitalテーブルからuser_idが一致するものを作成日時が新しい順で表示
+    return (
+        db.query(Hospital)
+        .filter(Hospital.user_id == user_id)
+        .order_by(Hospital.created_at.desc())
+        .all()
+    )
+    
 # 病院IDとユーザーIDから病院情報を取得
 def get_hospital_by_id_and_user_id(
     db: Session,

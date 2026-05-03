@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 from app.crud import hospital as hospital_crud
 from app.schemas.hospital import HospitalCreate, HospitalUpdate
 
-
-
 def _get_hospital_or_404(
     db: Session,
     hospital_id: int,
@@ -28,6 +26,13 @@ def get_hospital_service(
 ):
     # 共通関数を使って取得
     return _get_hospital_or_404(db, hospital_id, user_id)
+
+# 病院情報の全件取得処理
+def get_hospitals_service(
+    db: Session,
+    user_id: int
+):
+    return hospital_crud.get_hospitals_by_user_id(db, user_id)
 
 # 病院作成処理
 def create_hospital_service(
