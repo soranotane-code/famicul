@@ -27,6 +27,13 @@ def get_child_service(
     # 共通関数を使って取得
     return _get_child_or_404(db, child_id, user_id)
 
+# こども情報の全件取得処理
+def get_children_service(
+    db: Session,
+    user_id: int
+):
+    return child_crud.get_children_by_user_id(db, user_id)
+    
 # こども作成処理
 def create_child_service(
     db: Session,
