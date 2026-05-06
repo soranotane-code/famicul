@@ -26,9 +26,6 @@ app = FastAPI()
 def read_root():
     return {"message": "Famicul API is running!"}
 
-# ログイン処理の読み込み
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-
 # /childへのアクセスの処理
 app.include_router(children.router, tags=["children"])
 
@@ -41,38 +38,41 @@ app.include_router(visits.router, tags=["visit"])
 # /visits/{visit_id}/imagesへのアクセス処理
 app.include_router(visit_image.router, tags=["visit-images"])
 
-@app.post("/register")
-def register_user(user_in: user_schema.UserCreate, db: Session = Depends(get_db)):
-    # 1. すでに同じメールアドレスが登録されていないかチェック
-    db_user = db.query(user_model.User).filter(user_model.User.email == user_in.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+# --初期実装ではローカル保存、今後のアップデートで家族共有（認証）のため非公開
+# ログイン処理の読み込み
+#app.include_router(auth.router, prefix="/auth", tags=["auth"])
+# @app.post("/register")
+# def register_user(user_in: user_schema.UserCreate, db: Session = Depends(get_db)):
+#     # 1. すでに同じメールアドレスが登録されていないかチェック
+#     db_user = db.query(user_model.User).filter(user_model.User.email == user_in.email).first()
+#     if db_user:
+#         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # 2. パスワードをハッシュ化してモデルを作成
-    try:
-        hashed_pw = get_password_hash(user_in.password)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal server error during password processing")
+#     # 2. パスワードをハッシュ化してモデルを作成
+#     try:
+#         hashed_pw = get_password_hash(user_in.password)
+#     except Exception:
+#         raise HTTPException(status_code=500, detail="Internal server error during password processing")
     
-    # 3. モデルのインスタンスを作成
-    new_user = user_model.User(
-        name=user_in.name,
-        email=user_in.email,
-        hashed_password=hashed_pw
-    )
+#     # 3. モデルのインスタンスを作成
+#     new_user = user_model.User(
+#         name=user_in.name,
+#         email=user_in.email,
+#         hashed_password=hashed_pw
+#     )
 
-    # 4. DBに保存
-    try:
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
+#     # 4. DBに保存
+#     try:
+#         db.add(new_user)
+#         db.commit()
+#         db.refresh(new_user)
+#     except Exception:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail="Database error")
 
-    return {
-        "id": new_user.id,
-        "name": new_user.name,
-        "email": new_user.email,
-        "message": "User created successfully!"
-    }
+#     return {
+#         "id": new_user.id,
+#         "name": new_user.name,
+#         "email": new_user.email,
+#         "message": "User created successfully!"
+#     }
