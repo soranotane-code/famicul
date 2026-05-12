@@ -4,32 +4,27 @@ from app.models import Child
 from app.schemas.child import ChildCreate, ChildUpdate
 
 # ログインユーザーに紐づくこども情報を全件取得する
-def get_children_by_user_id(
+def get_children(
     db: Session,
-    user_id: int
 ) -> list[Child]:
-    #Childテーブルからuser_idが一致するものを誕生日が早い順で表示
     return (
         db.query(Child)
-        .filter(Child.user_id == user_id)
         .order_by(Child.birthday.asc())
         .all()
     )
 
 # こどもIDとユーザーIDからこども情報取得
-def get_child_by_id_and_user_id(
+def get_child_by_id(
     db: Session,
     child_id: int,
-    user_id: int
 ):
     # 指定ユーザーのこども情報を１件取得
-    return db.query(Child).filter(Child.id == child_id, Child.user_id == user_id).first()
+    return db.query(Child).filter(Child.id == child_id).first()
 
 # こども情報の新規作成
 def create_child(
     db: Session,
     child_in: ChildCreate,
-    user_id: int
 ):
     # 入力データからこどもモデルを作成して保存する
     new_child = Child(
@@ -40,7 +35,6 @@ def create_child(
         chronic_disease = child_in.chronic_disease,
         allergy = child_in.allergy,
         memo = child_in.memo,
-        user_id = user_id
     )
     db.add(new_child)
     db.commit()

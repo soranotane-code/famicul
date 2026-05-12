@@ -6,10 +6,9 @@ from app.schemas.child import ChildCreate, ChildUpdate
 def _get_child_or_404(
     db: Session,
     child_id: int,
-    user_id: int
 ):
     # DBから対象のユーザーのこどもを取得する
-    child = child_crud.get_child_by_id_and_user_id(db, child_id, user_id)
+    child = child_crud.get_child_by_id(db, child_id)
 
     # 見つからない場合は404を返す
     if not child:
@@ -22,36 +21,32 @@ def _get_child_or_404(
 def get_child_service(
     db: Session,
     child_id: int,
-    user_id: int
 ):
     # 共通関数を使って取得
-    return _get_child_or_404(db, child_id, user_id)
+    return _get_child_or_404(db, child_id)
 
 # こども情報の全件取得処理
 def get_children_service(
     db: Session,
-    user_id: int
 ):
-    return child_crud.get_children_by_user_id(db, user_id)
+    return child_crud.get_children(db)
     
 # こども作成処理
 def create_child_service(
     db: Session,
     child_in: ChildCreate,
-    user_id: int
 ):
     # DB保存処理をcrudへ委譲
-    return child_crud.create_child(db, child_in, user_id)
+    return child_crud.create_child(db, child_in)
 
 # こども情報更新処理
 def update_child_service(
     db: Session,
     child_id: int,
     child_in: ChildUpdate, 
-    user_id: int
 ):
     # DBから対象のユーザーのこどもを探す
-    child = _get_child_or_404(db, child_id, user_id)
+    child = _get_child_or_404(db, child_id)
 
     # DB保存処理をcrudへ委譲
     return child_crud.update_child(db, child, child_in)
@@ -60,10 +55,9 @@ def update_child_service(
 def delete_child_service(
     db: Session,
     child_id: int,
-    user_id: int
 ):
     # DBから対象のユーザーのこどもを探す
-    child = _get_child_or_404(db, child_id, user_id)
+    child = _get_child_or_404(db, child_id)
     
     # DB削除処理をcrudに委譲
     child_crud.delete_child(db, child)
